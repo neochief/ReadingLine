@@ -1,0 +1,17 @@
+/**
+ * Place your custom CSS styles here.
+ **/
+
+#ReadingLine {
+    position: fixed;
+    left:0;
+    right:0;
+    height: 24px;
+    margin-top: -12px;
+    background: rgba(0, 0, 0, 0.05);
+    pointer-events: none;
+}
+
+#ReadingLine.hidden {
+    display: none;
+}
