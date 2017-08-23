@@ -2,7 +2,7 @@
   "name": "ReadingLine",
   "version": "0.0.1",
   "manifest_version": 2,
-  "description": "Acts as a reading ruler helping to keep an eye on a line of text with a mouse",
+  "description": "Acts as a reading ruler, helping to keep an eye on a line of text with a mouse.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -10,10 +10,13 @@
   },
   "browser_action": {
     "default_icon": "icons/icon19.png",
-    "default_title": "Toggle Reading Line"
+    "default_title": "Toggle Reading Line (Ctrl + Alt + -)"
   },
   "permissions": [
-    "<all_urls>"
+    "http://*/*",
+    "https://*/*",
+    "file://*/*",
+    "tabs"
   ],
   "background": {
     "persistent": false,
@@ -22,7 +25,9 @@
   "content_scripts": [
     {
       "matches": [
-        "<all_urls>"
+        "http://*/*",
+        "https://*/*",
+        "file://*/*"
       ],
       "css": [
         "reading-line.css"
@@ -30,7 +35,9 @@
     },
     {
       "matches": [
-        "<all_urls>"
+        "http://*/*",
+        "https://*/*",
+        "file://*/*"
       ],
       "js": [
         "reading-line.js"
