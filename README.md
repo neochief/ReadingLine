@@ -2,7 +2,7 @@
 
 [![](download.png)](https://chrome.google.com/webstore/detail/readingline/bedndhimamenfipaocmhcpcickamhfnm?hl=en)
 
-The Chrome Extension for easy line tracking when reading. Acts as a reading ruler, helping to keep an eye on a line of text with a mouse.
+The [Chrome] Extension for easy line tracking when reading. Acts as a reading ruler, helping to keep an eye on a line of text with a mouse.
 
 ![](demo.jpg)
 
