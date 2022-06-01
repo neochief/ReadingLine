@@ -1,78 +1,81 @@
-var ReadingLine = localStorage.getItem("ReadingLine") === "true";
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason !== 'install') {
+        return;
+    }
 
-function toggleIcon() {
-    chrome.tabs.query({currentWindow: true}, function (tabs) {
-        for (var i in chrome.tabs) {
-            if (ReadingLine) {
-                chrome.browserAction.setIcon({
-                    path: "icons/icon19-active.png",
-                    tabId: chrome.tabs[i].id
-                });
-            }
-            else {
-                chrome.browserAction.setIcon({
-                    path: "icons/icon19.png",
-                    tabId: chrome.tabs[i].id
-                });
-            }
-        }
-    });
-}
+    chrome.storage.local.set({ReadingLine: true});
+    toggleIcon(true);
 
-toggleIcon();
-
-chrome.browserAction.onClicked.addListener(function (tab) {
-    chrome.tabs.query({currentWindow: true}, function (tabs) {
+    chrome.tabs.query({windowType: 'normal'}, function (tabs) {
         for (var i in tabs) {
+            chrome.scripting.insertCSS({
+                target: {tabId: tabs[i].id},
+                css: "reading-line.css",
+            });
+
+            chrome.scripting.executeScript({
+                target: {tabId: tabs[i].id},
+                files: ['reading-line.js'],
+            });
+
             chrome.tabs.sendMessage(tabs[i].id, {
-                action: ReadingLine ? "ReadingLine-disable" : "ReadingLine-enable"
+                action: "ReadingLine-enable"
             });
         }
     });
 });
 
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    if (request.message === "ReadingLine-status") {
-        sendResponse(ReadingLine);
+function toggleIcon(isEnabled) {
+    if (isEnabled) {
+        chrome.action.setIcon({
+            path: "icons/icon19-active.png",
+        });
     }
-
-    if (request.message === "ReadingLine-enable") {
-        ReadingLine = true;
-        localStorage.setItem("ReadingLine", ReadingLine);
-        toggleIcon();
+    else {
+        chrome.action.setIcon({
+            path: "icons/icon19.png",
+        });
     }
+}
 
-    if (request.message === "ReadingLine-disable") {
-        ReadingLine = false;
-        localStorage.setItem("ReadingLine", ReadingLine);
-        toggleIcon();
-    }
-
-    if (request.message === "ReadingLine-ping") {
-        injectedScript[sender.tab.id] = true;
-    }
-});
-
-var injectedScript = {};
-
-chrome.tabs.query({currentWindow: true}, function (tabs) {
-    for (var i in tabs) {
-        injectedScript[tabs[i].id] = null;
-        chrome.tabs.sendMessage(tabs[i].id, {action: "ReadingLine-ping"});
-    }
-
-    setTimeout(function() {
-        for (var tabId in injectedScript) {
-            tabId = parseInt(tabId);
-            if (!injectedScript[tabId]) {
-                chrome.tabs.insertCSS(tabId, {
-                    file: "reading-line.css"
-                });
-                chrome.tabs.executeScript(tabId, {
-                    file: "reading-line.js"
+function toggleExtensionStatus(isEnabled) {
+    toggleIcon(isEnabled);
+    chrome.storage.local.set({ ReadingLine: isEnabled }, function(){
+        chrome.tabs.query({windowType: 'normal'}, function (tabs) {
+            for (var i in tabs) {
+                chrome.tabs.sendMessage(tabs[i].id, {
+                    action: isEnabled ? "ReadingLine-enable" : "ReadingLine-disable"
                 });
             }
-        }
-    }, 1000)
+        });
+    });
+}
+
+chrome.storage.local.get(['ReadingLine'], function(result) {
+    toggleIcon(result.ReadingLine);
 });
+
+chrome.action.onClicked.addListener(function (tab) {
+    chrome.storage.local.get(['ReadingLine'], function(result) {
+        toggleExtensionStatus(!result.ReadingLine);
+    });
+});
+
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+    if (message === "ReadingLine-status") {
+        chrome.storage.local.get(['ReadingLine'], function(result) {
+            sendResponse(result.ReadingLine);
+        });
+        return true;
+    }
+
+    if (message === "ReadingLine-enable") {
+        toggleExtensionStatus(true);
+    }
+
+    if (message === "ReadingLine-disable") {
+        toggleExtensionStatus(false);
+    }
+});
+
 

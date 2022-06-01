@@ -11,6 +11,7 @@ var ReadingLine = {
 
         this.div = document.createElement("div");
         this.div.id = "ReadingLine";
+        this.div.style.top = "-100px";
 
         this.mouseMove = this.mouseMove.bind(this);
         this.mouseOut = this.mouseOut.bind(this);
@@ -27,7 +28,7 @@ var ReadingLine = {
     },
     checkStatus: function(){
         try {
-            chrome.runtime.sendMessage({"message": "ReadingLine-status"}, function (status) {
+            chrome.runtime.sendMessage("ReadingLine-status", function (status) {
                 if (status) {
                     this.enable();
                 }
@@ -37,7 +38,6 @@ var ReadingLine = {
             }.bind(this));
         }
         catch (e) {
-            this.disable();
         }
     },
     enable: function () {
@@ -50,7 +50,6 @@ var ReadingLine = {
         document.addEventListener("mouseover", this.mouseMove);
         document.addEventListener("mouseout", this.mouseOut);
         this.active = true;
-        chrome.runtime.sendMessage({"message": "ReadingLine-enable"});
     },
     disable: function () {
         if (!this.active) return;
@@ -65,7 +64,6 @@ var ReadingLine = {
         document.removeEventListener("mouseover", this.mouseMove);
         document.removeEventListener("mouseout", this.mouseOut);
         this.active = false;
-        chrome.runtime.sendMessage({"message": "ReadingLine-disable"});
     },
     mouseMove: function (e) {
         this.div.className = "active";
@@ -80,12 +78,14 @@ var ReadingLine = {
     },
     shortCut: function (e) {
         // Ctrl/Cmd + Alt + -
-        if ((e.ctrlKey || e.metaKey) && e.altKey && e.keyCode == 189) {
+        if ((e.ctrlKey || e.metaKey) && e.altKey && e.keyCode === 189) {
             if (!this.active) {
                 this.enable();
+                chrome.runtime.sendMessage("ReadingLine-enable");
             }
             else {
                 this.disable();
+                chrome.runtime.sendMessage("ReadingLine-disable");
             }
         }
     }
@@ -93,16 +93,13 @@ var ReadingLine = {
 
 ReadingLine.init();
 
-chrome.extension.onMessage.addListener(function (msg, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     switch (msg.action) {
         case "ReadingLine-enable":
             ReadingLine.enable();
             break;
         case "ReadingLine-disable":
             ReadingLine.disable();
-            break;
-        case "ReadingLine-ping":
-            chrome.runtime.sendMessage({"message": "ReadingLine-ping"});
             break;
     }
     sendResponse(msg.data, true);

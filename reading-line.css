@@ -7,9 +7,10 @@
     z-index: 1000;
     left:0;
     right:0;
-    height: 24px;
+    height: 26px;
     margin-top: -12px;
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(125, 125, 125, 0.05);
+    backdrop-filter: invert(5%);
     pointer-events: none;
 }
 
