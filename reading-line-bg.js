@@ -1,26 +1,28 @@
-chrome.runtime.onInstalled.addListener((details) => {
-    if (details.reason !== 'install') {
-        return;
+chrome.storage.local.get(['ReadingLine'], function(result) {
+    if (result.ReadingLine === null) {
+        chrome.storage.local.set({ReadingLine: true});
+        result.ReadingLine = true;
     }
-
-    chrome.storage.local.set({ReadingLine: true});
-    toggleIcon(true);
+    toggleIcon(result.ReadingLine);
 
     chrome.tabs.query({windowType: 'normal'}, function (tabs) {
         for (var i in tabs) {
-            chrome.scripting.insertCSS({
-                target: {tabId: tabs[i].id},
-                css: "reading-line.css",
-            });
+            try {
+                chrome.scripting.insertCSS({
+                    target: {tabId: tabs[i].id},
+                    css: "reading-line.css",
+                });
 
-            chrome.scripting.executeScript({
-                target: {tabId: tabs[i].id},
-                files: ['reading-line.js'],
-            });
+                chrome.scripting.executeScript({
+                    target: {tabId: tabs[i].id},
+                    files: ['reading-line.js'],
+                });
 
-            chrome.tabs.sendMessage(tabs[i].id, {
-                action: "ReadingLine-enable"
-            });
+                chrome.tabs.sendMessage(tabs[i].id, {
+                    action: result.ReadingLine ? "ReadingLine-enable" : "ReadingLine-disable"
+                });
+            }
+            catch (e) {}
         }
     });
 });
@@ -43,17 +45,16 @@ function toggleExtensionStatus(isEnabled) {
     chrome.storage.local.set({ ReadingLine: isEnabled }, function(){
         chrome.tabs.query({windowType: 'normal'}, function (tabs) {
             for (var i in tabs) {
-                chrome.tabs.sendMessage(tabs[i].id, {
-                    action: isEnabled ? "ReadingLine-enable" : "ReadingLine-disable"
-                });
+                try {
+                    chrome.tabs.sendMessage(tabs[i].id, {
+                        action: isEnabled ? "ReadingLine-enable" : "ReadingLine-disable"
+                    });
+                }
+                catch (e) {}
             }
         });
     });
 }
-
-chrome.storage.local.get(['ReadingLine'], function(result) {
-    toggleIcon(result.ReadingLine);
-});
 
 chrome.action.onClicked.addListener(function (tab) {
     chrome.storage.local.get(['ReadingLine'], function(result) {
