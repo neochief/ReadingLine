@@ -43,7 +43,11 @@ var ReadingLine = {
     enable: function () {
         if (this.active) return;
 
-        document.body.appendChild(this.div);
+        var div = document.getElementById("ReadingLine");
+        if (div === null) {
+          document.body.appendChild(this.div);
+        }
+
         document.addEventListener("mousedown", this.mouseMove);
         document.addEventListener("mouseup", this.mouseMove);
         document.addEventListener("mousemove", this.mouseMove);
